@@ -38,6 +38,8 @@ abstract class SleepDatabase: RoomDatabase(){
                 var instance = INSTANCE
 
                 if (instance == null){
+
+                    //create database if doesn't exist
                     instance = Room.databaseBuilder(context.applicationContext,
                             SleepDatabase::class.java,
                             "sleep_history_database")
