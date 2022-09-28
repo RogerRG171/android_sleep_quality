@@ -32,11 +32,6 @@ class SleepTrackerViewModel(
 
     private var viewModelJob = Job()
 
-    override fun onCleared() {
-        super.onCleared()
-        viewModelJob.cancel()
-    }
-
     private val uiScope = CoroutineScope(Dispatchers.Main + viewModelJob)
 
     private var tonight = MutableLiveData<SleepNight?>()
@@ -45,6 +40,29 @@ class SleepTrackerViewModel(
 
     val nightsString = Transformations.map(nights){ nights ->
         formatNights(nights, application.resources)
+    }
+
+    // start btn is visible at the begin
+    val startButtonVisible = Transformations.map(tonight){
+        null == it
+    }
+
+    //become visible when  start is press and tonight change value
+    val stopButtonVisible = Transformations.map(tonight){
+        null != it
+    }
+
+    // only visible case nights has data
+    val clearButtonVisible = Transformations.map(nights){
+        it?.isNotEmpty()
+    }
+
+    private var _showSnackbarEvent = MutableLiveData<Boolean>()
+    val showSnackbarEvent: LiveData<Boolean>
+        get() = _showSnackbarEvent
+
+    fun doneShowingSnackbar(){
+        _showSnackbarEvent.value = false
     }
 
     private val _navigateToSleepQuality = MutableLiveData<SleepNight>()
@@ -113,6 +131,8 @@ class SleepTrackerViewModel(
         uiScope.launch {
             clear()
             tonight.value = null
+
+            _showSnackbarEvent.value = true
         }
     }
 
@@ -120,6 +140,11 @@ class SleepTrackerViewModel(
         withContext(Dispatchers.IO){
             database.clear()
         }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        viewModelJob.cancel()
     }
 }
 
